@@ -1,0 +1,11 @@
+{
+  "name": "SIGMA 2.0 - Gestão de Manutenção",
+  "short_name": "SIGMA 2.0",
+  "description": "Sistema Integrado de Gestão de Manutenção e Ativos",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f5f2",
+  "theme_color": "#173b32",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

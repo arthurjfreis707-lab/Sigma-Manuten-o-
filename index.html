@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#173b32">
+<meta name="description" content="SIGMA 2.0 - Controle de manutenção">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>SIGMA 2.0 | Gestão de Manutenção</title>
+<style>
+:root{--green:#173b32;--green2:#245747;--gold:#c8a96b;--bg:#f3f5f2;--card:#fff;--ink:#1d2925;--muted:#6b7771;--line:#e1e7e2;--red:#b94a48;--blue:#326b91}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+header{background:linear-gradient(120deg,var(--green),#285b49);color:white;padding:22px max(18px,calc((100% - 1180px)/2));}
+.brand{display:flex;align-items:center;gap:13px}.logo{width:46px;height:46px;border:2px solid #d6c18e;border-radius:12px;display:grid;place-items:center;font-weight:900;color:#e6d4a7;font-size:19px}
+h1{font-size:23px;margin:0;letter-spacing:.5px}header p{margin:3px 0 0;color:#d5e1db;font-size:13px}
+main{max-width:1180px;margin:22px auto;padding:0 16px 45px}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:17px}.btn{border:0;border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer;background:var(--green);color:#fff}.btn.secondary{background:#e5ece7;color:var(--green)}.btn.gold{background:var(--gold);color:#20251f}.btn.danger{background:#f7e8e7;color:var(--red)}.btn:focus,input:focus,select:focus,textarea:focus{outline:3px solid #c8a96b66;outline-offset:1px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:17px}.stat,.panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;box-shadow:0 2px 8px #173b3208}.stat small{color:var(--muted)}.stat strong{display:block;font-size:25px;margin-top:4px;color:var(--green)}
+.layout{display:grid;grid-template-columns: minmax(0,1.15fr) minmax(300px,.85fr);gap:15px}.panel h2{font-size:17px;margin:0 0 13px;color:var(--green)}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}label{font-size:12px;font-weight:700;color:#53625a}input,select,textarea{width:100%;border:1px solid #d7dfd9;border-radius:8px;padding:10px;background:#fff;color:var(--ink);font:inherit}textarea{min-height:70px;resize:vertical}.form-actions{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}
+.filters{display:flex;gap:9px;flex-wrap:wrap;margin:15px 0}.filters input{max-width:300px}.filters select{max-width:210px}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:850px;background:#fff}th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);font-size:13px}th{background:#edf2ee;color:#43554b;font-size:11px;text-transform:uppercase;letter-spacing:.4px}tr:last-child td{border-bottom:0}.status{display:inline-block;border-radius:30px;padding:4px 8px;font-size:11px;font-weight:700;background:#e9f1ec;color:#286044}.status.open{background:#fff2d8;color:#875e13}.status.done{background:#e7eef7;color:#315c82}
+.actions{display:flex;gap:5px}.mini{padding:6px 8px;font-size:11px;border-radius:6px}.muted{color:var(--muted);font-size:12px}.empty{text-align:center;padding:25px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:25px}
+.notice{padding:10px 12px;background:#f6f1e5;border:1px solid #eadbb8;border-radius:9px;color:#66552f;font-size:12px;margin-bottom:14px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){header{padding:17px}.stats{gap:8px}.stat{padding:11px}.stat strong{font-size:21px}.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.toolbar .btn{flex:1}.filters input,.filters select{max-width:none;flex:1}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">Σ</div><div><h1>SIGMA 2.0</h1><p>Sistema Integrado de Gestão de Manutenção e Ativos</p></div></div></header>
+<main>
+<div class="toolbar">
+<button class="btn" onclick="document.getElementById('formPanel').scrollIntoView({behavior:'smooth'})">＋ Nova solicitação</button>
+<button class="btn secondary" id="exportCsv">Exportar Excel/CSV</button>
+<button class="btn secondary" id="backup">Backup dos dados</button>
+<label class="btn secondary" for="restoreFile">Restaurar backup</label><input id="restoreFile" type="file" accept="application/json" hidden>
+</div>
+<div class="notice">Os registros ficam salvos neste dispositivo/navegador. Faça backups periódicos para não perder informações ao trocar de aparelho ou limpar os dados do navegador.</div>
+<section class="stats">
+<div class="stat"><small>Total de solicitações</small><strong id="total">0</strong></div>
+<div class="stat"><small>Em aberto</small><strong id="open">0</strong></div>
+<div class="stat"><small>Em execução</small><strong id="progress">0</strong></div>
+<div class="stat"><small>Concluídas</small><strong id="done">0</strong></div>
+</section>
+<div class="layout">
+<section class="panel" id="formPanel">
+<h2 id="formTitle">Cadastrar manutenção</h2>
+<form id="maintenanceForm">
+<input type="hidden" id="recordId">
+<div class="formgrid">
+<div class="field"><label for="date">Data da solicitação *</label><input id="date" type="date" required></div>
+<div class="field"><label for="requester">Solicitante *</label><input id="requester" required placeholder="Nome do solicitante"></div>
+<div class="field"><label for="area">Área solicitante *</label><input id="area" required placeholder="Ex.: Produção, Facilities"></div>
+<div class="field"><label for="asset">Equipamento / patrimônio</label><input id="asset" placeholder="Nome, código ou patrimônio"></div>
+<div class="field"><label for="supplierType">Tipo de atendimento</label><select id="supplierType"><option>Fornecedor</option><option>Reparo próprio</option><option>A definir</option></select></div>
+<div class="field"><label for="supplier">Fornecedor / responsável</label><input id="supplier" placeholder="Empresa ou técnico"></div>
+<div class="field"><label for="parts">Necessita peças?</label><select id="parts"><option>Não</option><option>Sim</option><option>A avaliar</option></select></div>
+<div class="field"><label for="status">Status</label><select id="status"><option>Aberta</option><option>Em execução</option><option>Aguardando peças</option><option>Concluída</option><option>Cancelada</option></select></div>
+<div class="field"><label for="delivery">Previsão / data de entrega</label><input id="delivery" type="date"></div>
+<div class="field"><label for="returnDate">Data de retorno à área</label><input id="returnDate" type="date"></div>
+<div class="field"><label for="cost">Valor da manutenção (R$)</label><input id="cost" type="number" min="0" step="0.01" placeholder="0,00"></div>
+<div class="field"><label for="repairDays">Tempo de reparo (dias)</label><input id="repairDays" type="number" min="0" step="1" placeholder="Ex.: 3"></div>
+<div class="field full"><label for="description">Descrição do problema / serviço</label><textarea id="description" placeholder="Descreva a falha, serviço solicitado e observações"></textarea></div>
+<div class="field full"><label for="approval">Visto do responsável da área</label><input id="approval" placeholder="Nome do responsável / aprovação"></div>
+</div>
+<div class="form-actions"><button class="btn" type="submit">Salvar solicitação</button><button class="btn secondary" type="button" id="clearForm">Limpar</button></div>
+</form>
+</section>
+<section class="panel">
+<h2>Resumo e orientações</h2>
+<p class="muted">Use o cadastro para acompanhar o ciclo da manutenção, desde a abertura até o retorno do equipamento à área.</p>
+<ul class="muted" style="padding-left:18px;line-height:1.9">
+<li>Registre solicitante, área e equipamento.</li><li>Atualize o status durante o atendimento.</li><li>Informe custos, peças e fornecedor.</li><li>Registre a data de retorno e o visto do responsável.</li><li>Exporte os dados para análise e prestação de contas.</li>
+</ul>
+<div class="notice">Dica: para controle corporativo, defina um responsável por atualizar cada solicitação e mantenha o backup em local seguro.</div>
+</section>
+</div>
+<section class="panel" style="margin-top:16px">
+<h2>Controle de manutenções</h2>
+<div class="filters"><input id="search" placeholder="Buscar por solicitante, área ou equipamento..."><select id="filterStatus"><option value="">Todos os status</option><option>Aberta</option><option>Em execução</option><option>Aguardando peças</option><option>Concluída</option><option>Cancelada</option></select><select id="filterArea"><option value="">Todas as áreas</option></select></div>
+<div class="tablewrap"><table><thead><tr><th>Data</th><th>Solicitante / área</th><th>Equipamento</th><th>Atendimento</th><th>Status</th><th>Valor</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty">Nenhuma manutenção cadastrada.</div></div>
+</section>
+<footer>SIGMA 2.0 · Sistema de controle de manutenção · Versão inicial offline</footer>
+</main>
+<script>
+const KEY='sigma20_records';
+const $=id=>document.getElementById(id);
+let records=[];
+try{records=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){records=[]}
+const fields=['date','requester','area','asset','supplierType','supplier','parts','status','delivery','returnDate','cost','repairDays','description','approval'];
+function val(id){return $(id).value.trim()}
+function save(){localStorage.setItem(KEY,JSON.stringify(records));render()}
+function clearForm(){ $('maintenanceForm').reset();$('recordId').value='';$('date').value=new Date().toISOString().slice(0,10);$('formTitle').textContent='Cadastrar manutenção'}
+function render(){
+ $('total').textContent=records.length;
+ $('open').textContent=records.filter(r=>r.status==='Aberta').length;
+ $('progress').textContent=records.filter(r=>['Em execução','Aguardando peças'].includes(r.status)).length;
+ $('done').textContent=records.filter(r=>r.status==='Concluída').length;
+ const areas=[...new Set(records.map(r=>r.area).filter(Boolean))].sort();const old=$('filterArea').value;
+ $('filterArea').innerHTML='<option value="">Todas as áreas</option>'+areas.map(a=>`<option>${esc(a)}</option>`).join('');$('filterArea').value=old;
+ const q=$('search').value.toLowerCase(),st=$('filterStatus').value,ar=$('filterArea').value;
+ const list=records.filter(r=>(!q||[r.requester,r.area,r.asset,r.supplier].join(' ').toLowerCase().includes(q))&&(!st||r.status===st)&&(!ar||r.area===ar)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ $('rows').innerHTML=list.map(r=>`<tr><td>${fmt(r.date)}</td><td><b>${esc(r.requester)}</b><br><span class="muted">${esc(r.area)}</span></td><td>${esc(r.asset||'—')}</td><td>${esc(r.supplierType||'—')}<br><span class="muted">${esc(r.supplier||'')}</span></td><td><span class="status ${r.status==='Concluída'?'done':r.status==='Aberta'?'open':''}">${esc(r.status)}</span></td><td>${money(r.cost)}</td><td><div class="actions"><button class="btn secondary mini" onclick="editRecord('${r.id}')">Editar</button><button class="btn danger mini" onclick="deleteRecord('${r.id}')">Excluir</button></div></td></tr>`).join('');
+ $('empty').style.display=list.length?'none':'block';
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmt(s){return s?new Date(s+'T12:00:00').toLocaleDateString('pt-BR'):'—'}
+function money(v){return v?Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—'}
+$('maintenanceForm').addEventListener('submit',e=>{e.preventDefault();const r={id:$('recordId').value||String(Date.now())};fields.forEach(f=>r[f]=val(f));if(r.cost&&!Number.isFinite(Number(r.cost))){alert('Confira o valor informado.');return}const i=records.findIndex(x=>x.id===r.id);if(i>=0)records[i]=r;else records.push(r);save();clearForm();alert('Solicitação salva com sucesso.')});
+function editRecord(id){const r=records.find(x=>x.id===id);if(!r)return;fields.forEach(f=>$(f).value=r[f]||'');$('recordId').value=r.id;$('formTitle').textContent='Editar manutenção';$('formPanel').scrollIntoView({behavior:'smooth'})}
+function deleteRecord(id){if(confirm('Excluir esta solicitação? Esta ação não pode ser desfeita.')){records=records.filter(r=>r.id!==id);save()}}
+window.editRecord=editRecord;window.deleteRecord=deleteRecord;
+$('clearForm').onclick=clearForm;$('date').value=new Date().toISOString().slice(0,10);
+['search','filterStatus','filterArea'].forEach(id=>$(id).addEventListener('input',render));
+$('exportCsv').onclick=()=>{if(!records.length){alert('Não há registros para exportar.');return}const cols=['date','requester','area','asset','supplierType','supplier','parts','status','delivery','returnDate','cost','repairDays','description','approval'];const head=['Data','Solicitante','Área','Equipamento','Tipo atendimento','Fornecedor/responsável','Necessita peças','Status','Entrega','Retorno área','Valor','Tempo reparo dias','Descrição','Visto responsável'];const csv=[head,...records.map(r=>cols.map(c=>r[c]??''))].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='SIGMA_manutencoes.csv';a.click();URL.revokeObjectURL(a.href)};
+$('backup').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(records,null,2)],{type:'application/json'}));a.download='SIGMA_backup.json';a.click();URL.revokeObjectURL(a.href)};
+$('restoreFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data))throw Error();if(confirm('Importar backup? Os registros atuais serão substituídos.')){records=data;save();alert('Backup restaurado.')}}catch(err){alert('Arquivo de backup inválido.')}e.target.value=''};
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+render();
+</script>
+</body></html>

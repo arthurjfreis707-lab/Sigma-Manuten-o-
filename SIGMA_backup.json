@@ -1,0 +1,19 @@
+[
+  {
+    "id": "1793470747321",
+    "date": "2026-10-31",
+    "requester": "JULIANA",
+    "area": "RH",
+    "asset": "LUMINARIA",
+    "supplierType": "Reparo próprio",
+    "supplier": "MAURO",
+    "parts": "Sim",
+    "status": "Aberta",
+    "delivery": "2026-11-02",
+    "returnDate": "2026-10-22",
+    "cost": "100.00",
+    "repairDays": "2",
+    "description": "LUMMINARIA QUEIMADA",
+    "approval": ""
+  }
+]
